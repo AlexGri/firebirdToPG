@@ -27,8 +27,8 @@ class TableProcessor extends Actor with ActorLogging {
       }
       //log.info(s"executing $insertQuery with parameters (only first one) ${lines.head}")
       NamedDB('pg) localTx { implicit session =>
-        lines.map(params => SQL(insertQuery).bind(params:_*).update.apply())
-        //SQL(insertQuery).batch(lines: _*).apply()
+        //lines.map(params => SQL(insertQuery).bind(params:_*).update.apply())
+        SQL(insertQuery).batch(lines: _*).apply()
       }
       replyTo ! WorkDone(table)
 

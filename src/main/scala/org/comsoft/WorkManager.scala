@@ -8,7 +8,7 @@ import org.comsoft.Protocol._
 /**
  * Created by alexgri on 02.02.15.
  */
-class WorkManager extends Actor {
+class WorkManager extends Actor with ActorLogging {
   var todo:Map[String, Int] = _
   var requestor:ActorRef = _
   var tableInfos:Seq[TableInfo] = Seq.empty
@@ -33,10 +33,13 @@ class WorkManager extends Actor {
       tables.foreach{case table => infoAggregator ! Process(table)}
     case WorkDone(tableName) =>
       val cnt = todo.getOrElse(tableName, 0) - 1
-      if (cnt <= 0)
+      if (cnt <= 0) {
+        log.info(s"processing of $tableName is completed")
         todo = todo - tableName
-      else
+      } else {
+        log.info(s"$tableName: $cnt batches left")
         todo = todo.updated(tableName, cnt)
+      }
       if (todo.isEmpty) requestor ! WorkComplete
     case ti@TableInfo(table, batchInfos) =>
       todo = todo.updated(table, batchInfos.size)
