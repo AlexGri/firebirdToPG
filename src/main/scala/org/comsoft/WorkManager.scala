@@ -45,6 +45,8 @@ class WorkManager extends Actor with ActorLogging {
       todo = todo.updated(table, batchInfos.size)
       tableInfos = tableInfos :+ ti
       batchInfos.foreach(bi => processor ! BatchPart(table, bi))
+    case t:TimingMsg => context.parent ! t
+
   }
 }
 

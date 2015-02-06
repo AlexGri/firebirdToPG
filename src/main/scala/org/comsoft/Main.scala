@@ -10,6 +10,8 @@ class MainActor extends Actor with ActorLogging {
 
   val manager = context.actorOf(WorkManager.props, "operator")
   val allTables = context.actorOf(TableRetriever.props, "tr")
+  var pgtime = 0l
+  var fbtime = 0l
   context.watch(manager)
   override def supervisorStrategy: SupervisorStrategy = {
     AllForOneStrategy(){
@@ -19,9 +21,15 @@ class MainActor extends Actor with ActorLogging {
 
   override def receive: Receive = {
     case Collect => allTables ! Collect
-    case WorkComplete => log.info("all work completed");context.system.shutdown()
+    case WorkComplete =>
+      log.info("all work completed");
+      log.info(s"pg time $pgtime");
+      log.info(s"fb time $fbtime");
+      context.system.shutdown()
     case msg: DoExport => manager ! msg
     case Terminated(manager) => log.info("shutting down"); context.system.shutdown()
+    case PGTime(time) => pgtime = time
+    case FBTime(time) => fbtime = time
   }
 }
 

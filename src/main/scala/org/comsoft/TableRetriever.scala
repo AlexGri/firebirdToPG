@@ -7,7 +7,7 @@ import scalikejdbc._
 /**
  * Created by alexgri on 02.02.15.
  */
-class TableRetriever extends Actor with ActorLogging {
+class TableRetriever extends Actor with ActorLogging with FBTiming with PGTiming {
 
   val q =
     """
@@ -19,13 +19,17 @@ class TableRetriever extends Actor with ActorLogging {
 
   override def receive: Receive = {
     case Collect =>
-      val tableNames = DB readOnly { implicit session =>
-        SQL(q).map(rs => rs.string(1).trim).list().apply()
+      val tableNames = fbTiming {
+        DB readOnly { implicit session =>
+          SQL(q).map(rs => rs.string(1).trim).list().apply()
+        }
       }
 
       val truncation = tableNames.map(name => s"TRUNCATE $name").mkString(";\n")
-      NamedDB('pg) localTx {implicit session =>
-        SQL(truncation).execute().apply()
+      pgTiming {
+        NamedDB('pg) localTx {implicit session =>
+          SQL(truncation).execute().apply()
+        }
       }
       sender() ! DoExport(tableNames)
   }

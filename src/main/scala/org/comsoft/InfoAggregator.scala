@@ -10,7 +10,7 @@ import scalikejdbc._
 /**
  * Created by alexgri on 02.02.15.
  */
-class InfoAggregator extends Actor with ActorLogging {
+class InfoAggregator extends Actor with ActorLogging with FBTiming {
   val batchSize = cfg.getInt("batchsize")
 
   def cfg = context.system.settings.config
@@ -25,16 +25,20 @@ class InfoAggregator extends Actor with ActorLogging {
       val countQuery = s"select COUNT(1) from $table"
 
       log.debug(countQuery)
-      val count = DB readOnly { implicit session =>
-        SQL(countQuery).map(rs => rs.int(1)).single().apply().getOrElse(0)
+      val count = fbTiming {
+        DB readOnly { implicit session =>
+          SQL(countQuery).map(rs => rs.int(1)).single().apply().getOrElse(0)
+        }
       }
 
       if (count <= 0) {
         sender() ! WorkDone(table)
       } else {
 
-        val fields:List[FieldInfo] = DB readOnly { implicit session =>
-          SQL(s"$fieldsQuery '$table'").map(rs => FieldInfo(rs.string(1).trim.toLowerCase, rs.int(2), rs.int(3))).list().apply()
+        val fields:List[FieldInfo] = fbTiming {
+          DB readOnly { implicit session =>
+            SQL(s"$fieldsQuery '$table'").map(rs => FieldInfo(rs.string(1).trim.toLowerCase, rs.int(2), rs.int(3))).list().apply()
+          }
         }
         val selectPart = fields.map{
           //case FieldInfo(name, 7, 0) => s"case $name when 1 then trim('TRUE') when 0 then 'FALSE' end as $name"
@@ -47,7 +51,7 @@ class InfoAggregator extends Actor with ActorLogging {
         val substitution = questionMarks.mkString("(", ", ", ")")
 
 
-        val insertQuery = fields.map(f => s""""${f.name}"""").mkString(s"INSERT INTO $table (", ", ", s") VALUES$substitution")
+        val insertQuery = fields.map(_.name).mkString(s"INSERT INTO $table (", ", ", s") VALUES$substitution")
 
         val numOfBatches = count / batchSize
         val batchInfos = (0 to numOfBatches).map { offset =>
