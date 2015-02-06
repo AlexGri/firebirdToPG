@@ -20,7 +20,7 @@ class TableProcessor extends Actor with ActorLogging with FBTiming with PGTiming
   val batchsize = context.system.settings.config.getInt("batchsize")
 
   override def receive: Receive = {
-    case BatchPart(table, BatchInfo(_, query, saveTo, insertQuery)) => {
+    case BatchPart(table, BatchInfo(query, insertQuery)) => {
       val replyTo = sender()
       //log.info(s"executing $batchNum query for $table")
       val lines = fbTiming {

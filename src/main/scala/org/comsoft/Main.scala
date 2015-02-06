@@ -22,9 +22,9 @@ class MainActor extends Actor with ActorLogging {
   override def receive: Receive = {
     case Collect => allTables ! Collect
     case WorkComplete =>
-      log.info("all work completed");
-      log.info(s"pg time $pgtime");
-      log.info(s"fb time $fbtime");
+      log.info("all work completed")
+      log.info(s"pg time $pgtime")
+      log.info(s"fb time $fbtime")
       context.system.shutdown()
     case msg: DoExport => manager ! msg
     case Terminated(manager) => log.info("shutting down"); context.system.shutdown()
