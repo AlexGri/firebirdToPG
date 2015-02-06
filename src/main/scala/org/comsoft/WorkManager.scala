@@ -1,6 +1,6 @@
 package org.comsoft
 
-import akka.actor.SupervisorStrategy.{Decider, Escalate, Stop}
+import akka.actor.SupervisorStrategy.{Escalate, Decider, Stop}
 import akka.actor._
 import akka.routing.FromConfig
 import org.comsoft.Protocol._
@@ -16,11 +16,7 @@ class WorkManager extends Actor {
   val infoAggregator = createInfoAggregator
 
   val decider: Decider = {
-    case _:FileWriteException => Escalate
-    case _: ActorInitializationException ⇒ Stop
-    case _: ActorKilledException         ⇒ Stop
-    case _: DeathPactException           ⇒ Stop
-    case _: Exception                    ⇒ Stop
+    case _ ⇒ Escalate
   }
 
   override def supervisorStrategy: SupervisorStrategy = {
@@ -41,12 +37,11 @@ class WorkManager extends Actor {
         todo = todo - tableName
       else
         todo = todo.updated(tableName, cnt)
-      if (todo.isEmpty) requestor ! WorkComplete(tableInfos)
-    case ti@TableInfo(table, blobs, regular, batchInfos) =>
+      if (todo.isEmpty) requestor ! WorkComplete
+    case ti@TableInfo(table, batchInfos) =>
       todo = todo.updated(table, batchInfos.size)
       tableInfos = tableInfos :+ ti
-      batchInfos.foreach(processor ! _)
-    case e:FileWriteException => throw e
+      batchInfos.foreach(bi => processor ! BatchPart(table, bi))
   }
 }
 
