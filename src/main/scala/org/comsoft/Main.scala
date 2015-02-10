@@ -25,11 +25,17 @@ class MainActor extends Actor with ActorLogging {
       log.info("all work completed")
       log.info(s"pg time $pgtime")
       log.info(s"fb time $fbtime")
-      context.system.shutdown()
+      shutdown
     case msg: DoExport => manager ! msg
-    case Terminated(manager) => log.info("shutting down"); context.system.shutdown()
+    case Terminated(manager) => shutdown
     case PGTime(time) => pgtime = time
     case FBTime(time) => fbtime = time
+  }
+
+  def shutdown = {
+    log.info("shutting down")
+    DBs.closeAll()
+    context.system.shutdown()
   }
 }
 

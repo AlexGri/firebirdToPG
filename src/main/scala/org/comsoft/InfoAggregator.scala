@@ -16,13 +16,13 @@ class InfoAggregator extends Actor with ActorLogging with FBTiming {
   val fieldsQuery = """select rf.rdb$field_name, f.RDB$FIELD_TYPE, f.RDB$FIELD_SUB_TYPE
                       |from rdb$relation_fields rf
                       |join RDB$FIELDS f on (f.RDB$FIELD_NAME = RF.RDB$FIELD_SOURCE)
-                      |where rf.rdb$relation_name = """.stripMargin
+                      |where rf.rdb$relation_name = ?""".stripMargin
 
   val pkFields = """SELECT s.rdb$field_name
                    |FROM rdb$index_segments AS s
                    |LEFT JOIN rdb$relation_constraints AS rc ON (rc.rdb$index_name = s.rdb$index_name)
                    |WHERE rc.rdb$constraint_type = 'PRIMARY KEY'
-                   |AND  rc.rdb$relation_name = 'JBPM5_HT_N10N_JBPM5_HT_MAILNHDR'
+                   |AND  rc.rdb$relation_name = ?
                    |""".stripMargin
 
   override def receive: Receive = {
@@ -42,12 +42,12 @@ class InfoAggregator extends Actor with ActorLogging with FBTiming {
 
         val (fields, orderPart) = fbTiming {
           DB readOnly { implicit session =>
-            val order = SQL(pkFields).map(_.string(1).trim.toLowerCase).list().apply() match {
+            val order = SQL(pkFields).bind(table).map(_.string(1).trim.toLowerCase).list().apply() match {
               case l if l.isEmpty => ""
               case l => l.mkString("ORDER BY ", ", ", "")
             }
 
-            val infos = SQL(s"$fieldsQuery '$table'").map(rs => FieldInfo(rs.string(1).trim.toLowerCase, rs.int(2), rs.int(3))).list().apply()
+            val infos = SQL(fieldsQuery).bind(table).map(rs => FieldInfo(rs.string(1).trim.toLowerCase, rs.int(2), rs.int(3))).list().apply()
             (infos, order)
           }
         }
