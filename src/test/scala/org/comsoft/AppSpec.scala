@@ -4,6 +4,7 @@ import java.nio.charset.Charset
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
+import org.apache.commons.dbcp.DelegatingConnection
 import org.comsoft.Protocol._
 import org.scalatest.Matchers
 import scalikejdbc._
@@ -51,7 +52,7 @@ class AppSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
 
 
 
-  it should  "correctly convert string with null symbol " in {
+  it should  "correctly convert string with null symbol " ignore  {
 
     val id = 972956
     val query = sql"select subject_id FROM oc_jbpm5ext_attribute WHERE id = $id"
@@ -60,6 +61,15 @@ class AppSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
     }
     val converted = (identity ++ r).map{ case (c1, c2) => s"$c1 -> $c2 = " + new String(str.getBytes(c1), c2)}
     println(converted.mkString("\n"))
+  }
+
+  it should "be able to get real pg connection" in {
+    using(ConnectionPool.borrow('pg)) { connection =>
+      val realconn = connection.asInstanceOf[DelegatingConnection]
+      println(realconn.getClass)
+      val delegate = realconn.getInnermostDelegate
+      println(delegate.getClass)
+    }
   }
 
 }

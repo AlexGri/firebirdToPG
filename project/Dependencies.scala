@@ -18,7 +18,7 @@ object Dependencies {
   }
 
   object scalike {
-    val version = "2.2.1"
+    val version = "2.2.3"
 
     val jdbc = "org.scalikejdbc" %% "scalikejdbc" % version
     val testkit = "org.scalikejdbc" %% "scalikejdbc-test" % version
@@ -37,7 +37,12 @@ object Dependencies {
 
   val csv = "net.sf.supercsv" % "super-csv" % "2.2.0"
 
+  val pool = "com.zaxxer" % "HikariCP" % "2.3.2"
+
+
   val csvScala = "com.github.tototoshi" %% "scala-csv" % "1.1.2"
+
+  val io = "commons-io" % "commons-io" % "2.4"
 
   val scalatest    = "org.scalatest"    %% "scalatest"    % "2.2.1"
 }

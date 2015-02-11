@@ -12,8 +12,10 @@ libraryDependencies ++= Seq (
   scalike.config,
   firebird,
   pg,
+  pool,
   csvScala,
   slf4j.logback,
+  io,
   akka.testkit % "test",
   scalatest % "test",
   scalike.testkit % "test"
