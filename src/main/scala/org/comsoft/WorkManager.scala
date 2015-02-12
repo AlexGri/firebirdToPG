@@ -11,10 +11,10 @@ import org.comsoft.Protocol._
 class WorkManager extends Actor with ActorLogging {
   var todo:Map[String, Int] = _
   var requestor:ActorRef = _
-  var tableInfos:Seq[TableInfo] = Seq.empty
+  var tableInfos:Seq[TI] = Seq.empty
   val processor = createProcessor
   val infoAggregator = createInfoAggregator
-  var numOfBlobsToProcess = 0l
+
 
   val decider: Decider = {
     case _ ⇒ Escalate
@@ -47,6 +47,12 @@ class WorkManager extends Actor with ActorLogging {
       todo = todo.updated(table, batchInfos.size)
       tableInfos = tableInfos :+ ti
       batchInfos.foreach(bi => processor ! BatchPart(table, bi))
+      //self ! WorkDone(table)
+    case ti@BlobTableInfo(table, batchInfos) =>
+      log.info(s"$table contains blob fields")
+      todo = todo.updated(table, batchInfos.size)
+      tableInfos = tableInfos :+ ti
+      batchInfos.foreach(bi => processor ! BatchPart(table, bi))
     case t:TimingMsg => context.parent ! t
    /* case b:BlobBytes =>
       numOfBlobsToProcess = numOfBlobsToProcess + 1
@@ -56,7 +62,7 @@ class WorkManager extends Actor with ActorLogging {
       sendIfComplete*/
   }
 
-  def sendIfComplete = if (todo.isEmpty && numOfBlobsToProcess ==0) requestor ! WorkComplete
+  def sendIfComplete = if (todo.isEmpty) requestor ! WorkComplete
 }
 
 object WorkManager {

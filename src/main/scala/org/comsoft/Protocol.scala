@@ -7,9 +7,21 @@ import java.sql.Blob
  */
 object Protocol {
   case class DoExport(val tables:List[String]) extends AnyVal
-  case class TableInfo(name:String, batches:Seq[BatchInfo])
-  case class BatchInfo(selectQuery:String, insertQuery:String)
-  case class BatchPart(table:String, info:BatchInfo)
+  sealed trait TI {
+    def name:String
+    def batches:Seq[Batch]
+  }
+
+  case class TableInfo(name:String, batches:Seq[BatchInfo]) extends TI
+  case class BlobTableInfo(name:String, batches:Seq[BlobBatchInfo]) extends TI
+
+  sealed trait Batch {
+    def selectQuery:String
+    def insertQuery:String
+  }
+  case class BatchInfo(selectQuery:String, insertQuery:String) extends Batch
+  case class BlobBatchInfo(selectQuery:String, insertQuery:String) extends Batch
+  case class BatchPart(table:String, info:Batch)
   case class Process(val table:String) extends AnyVal
   case class WorkDone(val tableName:String) extends AnyVal
   case object WorkComplete

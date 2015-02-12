@@ -10,6 +10,7 @@ import scalikejdbc._
  */
 class InfoAggregator extends Actor with ActorLogging with FBTiming {
   val batchSize = cfg.getInt("batchsize")
+  val blobBatchSize = cfg.getInt("blobBatchSize")
 
   def cfg = context.system.settings.config
 
@@ -35,7 +36,6 @@ class InfoAggregator extends Actor with ActorLogging with FBTiming {
           SQL(countQuery).map(rs => rs.int(1)).single().apply().getOrElse(0)
         }
       }
-
       if (count <= 0) {
         sender() ! WorkDone(table)
       } else {
@@ -51,10 +51,11 @@ class InfoAggregator extends Actor with ActorLogging with FBTiming {
             (infos, order)
           }
         }
-        val selectPart = fields.map{
-          //case FieldInfo(name, 7, 0) => s"case $name when 1 then trim('TRUE') when 0 then 'FALSE' end as $name"
-          case FieldInfo(name, _, _) => name
-        }.mkString("", ", ", s" from $table $orderPart")
+
+        val blobs = fields.find(_.tpe == 261)
+        val msgFactory:MsgFactory = blobs.map(_ => BlobBatchInfo).getOrElse(BatchInfo)
+        val bsize = blobs.map(_ => blobBatchSize).getOrElse(batchSize)
+        val selectPart = fields.map(_.name).mkString("", ", ", s" from $table $orderPart")
 
         log.info(s"creating insert query for $table with ${fields.size} fields")
 
@@ -65,18 +66,23 @@ class InfoAggregator extends Actor with ActorLogging with FBTiming {
         val insertQuery = fields.map(_.name).mkString(s"INSERT INTO $table (", ", ", s") VALUES$substitution")
 
         val batchInfos = if (orderPart.isEmpty) {
-          Seq(BatchInfo(s"select $selectPart", insertQuery))
+          Seq(msgFactory(s"select $selectPart", insertQuery))
         } else {
-          val numOfBatches = count / batchSize
+          val numOfBatches = count / bsize
           (0 to numOfBatches).map { offset =>
-            val s = s"select first $batchSize skip ${offset * batchSize}"
-            BatchInfo(s"$s $selectPart", insertQuery)
+            val s = s"select first $bsize skip ${offset * bsize}"
+            msgFactory(s"$s $selectPart", insertQuery)
           }
         }
-        sender() ! TableInfo(table,batchInfos)
+
+        sender() ! blobs.map(_ => BlobTableInfo(table, batchInfos.asInstanceOf[Seq[BlobBatchInfo]]))
+          .getOrElse(TableInfo(table, batchInfos.asInstanceOf[Seq[BatchInfo]]))
       }
 
   }
+
+  type MsgFactory = (String, String) => Batch
+
 }
 
 object InfoAggregator {

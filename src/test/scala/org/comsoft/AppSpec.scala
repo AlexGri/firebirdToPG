@@ -6,6 +6,7 @@ import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
 import org.apache.commons.dbcp.DelegatingConnection
 import org.comsoft.Protocol._
+import org.postgresql.PGConnection
 import org.scalatest.Matchers
 import scalikejdbc._
 import scala.concurrent.duration._
@@ -64,11 +65,12 @@ class AppSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
   }
 
   it should "be able to get real pg connection" in {
-    using(ConnectionPool.borrow('pg)) { connection =>
-      val realconn = connection.asInstanceOf[DelegatingConnection]
-      println(realconn.getClass)
-      val delegate = realconn.getInnermostDelegate
-      println(delegate.getClass)
+    NamedDB('pg) localTx { session =>
+      val pgconnection = session.connection.unwrap(classOf[PGConnection])
+      val lom = pgconnection.getLargeObjectAPI
+      assert(lom != null)
+      val lo = lom.createLO()
+      println(lo)
     }
   }
 

@@ -1,13 +1,8 @@
 package org.comsoft
 
-import javax.sql.DataSource
-
 import akka.actor.SupervisorStrategy.Stop
 import akka.actor._
-import akka.routing.FromConfig
-import com.zaxxer.hikari.HikariDataSource
 import org.comsoft.Protocol._
-import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 import scalikejdbc.config.DBs
 
 class MainActor extends Actor with ActorLogging {
@@ -44,7 +39,7 @@ class MainActor extends Actor with ActorLogging {
 }
 
 object Main extends App {
-  val dataSource: DataSource = {
+  /*val dataSource: DataSource = {
     val ds = new HikariDataSource()
     ds.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource")
     ds.setUsername("postgres")
@@ -54,7 +49,7 @@ object Main extends App {
 
     ds
   }
-  ConnectionPool.add('pg, new DataSourceConnectionPool(dataSource))
+  ConnectionPool.add('pg, new DataSourceConnectionPool(dataSource))*/
 
   DBs.setupAll()
   val system = ActorSystem("example")

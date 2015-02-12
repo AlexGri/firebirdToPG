@@ -38,6 +38,7 @@ object Dependencies {
   val csv = "net.sf.supercsv" % "super-csv" % "2.2.0"
 
   val pool = "com.zaxxer" % "HikariCP" % "2.3.2"
+  val dbcp2 = "org.apache.commons" % "commons-dbcp2" % "2.0.+"
 
 
   val csvScala = "com.github.tototoshi" %% "scala-csv" % "1.1.2"

@@ -13,6 +13,7 @@ libraryDependencies ++= Seq (
   firebird,
   pg,
   pool,
+  dbcp2,
   csvScala,
   slf4j.logback,
   io,
