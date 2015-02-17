@@ -78,11 +78,6 @@ class TableProcessor extends Actor with ActorLogging with FBTiming with PGTiming
     (1 to rs.metaData.getColumnCount).map{i =>
       val tpe = rs.metaData.getColumnType(i)
       tpe match {
-        case Types.SMALLINT =>
-          val value = rs.nullableShort(i)
-          if (value == 0) false
-          else if (value == 1) true
-          else null
         case Types.VARCHAR =>
           rs.stringOpt(i).map(_.replace(nullSymbol, "")).orNull
         case Types.BLOB | Types.LONGVARBINARY =>
@@ -98,11 +93,6 @@ class TableProcessor extends Actor with ActorLogging with FBTiming with PGTiming
     (1 to rs.metaData.getColumnCount).map{i =>
       val tpe = rs.metaData.getColumnType(i)
       tpe match {
-        case Types.SMALLINT =>
-          val value = rs.nullableShort(i)
-          if (value == 0) false
-          else if (value == 1) true
-          else null
         case Types.VARCHAR =>
           rs.stringOpt(i).map(_.replace(nullSymbol, "")).orNull
         case Types.BLOB | Types.LONGVARBINARY =>
