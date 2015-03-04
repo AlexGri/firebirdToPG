@@ -1,10 +1,13 @@
 import Dependencies._
+import com.github.retronym.SbtOneJar._
 
 name := "firebirdToPG"
 
 version := "1.0"
 
 scalaVersion := "2.11.5"
+
+oneJarSettings
 
 libraryDependencies ++= Seq (
   akka.actor,
