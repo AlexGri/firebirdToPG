@@ -1,5 +1,6 @@
 package org.comsoft
 
+import akka.actor.ActorSystem
 import com.typesafe.config.Config
 
 import sys.process._
@@ -21,4 +22,6 @@ object TableMetadataExtractor {
       config.getString("db.default.password"),
       config.getString("database.name"))
   }
+
+  def apply(implicit actorSystem: ActorSystem) = this.apply(actorSystem.settings.config)
 }
