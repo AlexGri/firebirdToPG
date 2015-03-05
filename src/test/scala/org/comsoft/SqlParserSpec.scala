@@ -16,7 +16,7 @@ class SqlParserSpec extends FreeSpec with Matchers {
   "parse sql metadata" in {
     val sql = loadMetadata
     val parser = new SqlParser(sql)
-    val ParseResult(sequences, tables, indexesAndConstraints) = parser.traverse
+    val ParseResult(sequences, tables, indexes, constraints) = parser.traverse
 
     //println(sequences.zipWithIndex.mkString("\n"))
     //println(tables.zipWithIndex.mkString("\n"))
@@ -24,7 +24,9 @@ class SqlParserSpec extends FreeSpec with Matchers {
 
     sequences.size shouldBe 14
     tables.size shouldBe 119
-    indexesAndConstraints.size shouldBe 44 + 148
+    indexes.size shouldBe 44
+    constraints.size shouldBe 148
+
 
   }
 
@@ -33,9 +35,9 @@ class SqlParserSpec extends FreeSpec with Matchers {
     val outSql = "CREATE SEQUENCE ATTACHMENT_ID_SEQ;"
 
     val parser = new SqlParser(inSql)
-    val ParseResult(s, t, i) = parser.traverse
-
-    //compare with outSql
+    val ParseResult(s, t, i, c) = parser.traverse
+        //compare with outSql
+    s.head.sql shouldBe outSql
   }
 
   "replace numeric(18, 0) with bigint" in {
@@ -56,19 +58,21 @@ class SqlParserSpec extends FreeSpec with Matchers {
                    |PRIMARY KEY (ID));""".stripMargin
 
     val parser = new SqlParser(inSql)
-    val ParseResult(s, t, i) = parser.traverse
+    val ParseResult(s, t, i, c) = parser.traverse
 
     //compare with outSql
+    t.head.sql shouldBe outSql
   }
 
   "remove computed by from index" in {
     val inSql = "CREATE INDEX IX_DOCKIND_ANAME_UP ON ERM_DOCKIND COMPUTED BY (upper(ANAME));"
-    val outSql = "CREATE INDEX IX_DOCKIND_ANAME_UP ON ERM_DOCKIND  (upper(ANAME));"
+    val outSql = "CREATE INDEX IX_DOCKIND_ANAME_UP ON ERM_DOCKIND (upper(ANAME));"
 
     val parser = new SqlParser(inSql)
-    val ParseResult(s, t, i) = parser.traverse
+    val ParseResult(s, t, i, c) = parser.traverse
 
     //compare with outSql
+    i.head.sql shouldBe outSql
   }
 
   "replace desc keyword" in {
@@ -76,9 +80,10 @@ class SqlParserSpec extends FreeSpec with Matchers {
     val outSql = "CREATE INDEX ERM_FOLDER_IDX2 ON ERM_FOLDER (RBORDER DESC);"
 
     val parser = new SqlParser(inSql)
-    val ParseResult(s, t, i) = parser.traverse
+    val ParseResult(s, t, i, c) = parser.traverse
 
     //compare with outSql
+    i.head.sql shouldBe outSql
   }
 
   "convert text type" in {
@@ -88,7 +93,7 @@ class SqlParserSpec extends FreeSpec with Matchers {
                   |        INSTALLED SMALLINT,
                   |        INSTALL_LOG BLOB SUB_TYPE TEXT SEGMENT SIZE 80,
                   |PRIMARY KEY (ID));""".stripMargin
-    val outSql = """CREATE TABLE CFG_ARTIFACT (ID NUMERIC(18, 0) NOT NULL,
+    val outSql = """CREATE TABLE CFG_ARTIFACT (ID BIGINT NOT NULL,
                    |        NAME VARCHAR(255) NOT NULL,
                    |        CODE VARCHAR(30) NOT NULL,
                    |        INSTALLED SMALLINT,
@@ -96,9 +101,10 @@ class SqlParserSpec extends FreeSpec with Matchers {
                    |PRIMARY KEY (ID));""".stripMargin
 
     val parser = new SqlParser(inSql)
-    val ParseResult(s, t, i) = parser.traverse
+    val ParseResult(s, t, i, c) = parser.traverse
 
     //compare with outSql
+    t.head.sql shouldBe outSql
   }
 
   "convert blob type" in {
@@ -112,9 +118,10 @@ class SqlParserSpec extends FreeSpec with Matchers {
                    |CONSTRAINT PK_ERMS_SAVED_FILTER PRIMARY KEY (ID));""".stripMargin
 
     val parser = new SqlParser(inSql)
-    val ParseResult(s, t, i) = parser.traverse
+    val ParseResult(s, t, i, c) = parser.traverse
 
     //compare with outSql
+    t.head.sql shouldBe outSql
   }
 
   "replace quotes in names" in {
@@ -136,8 +143,9 @@ class SqlParserSpec extends FreeSpec with Matchers {
                    |CONSTRAINT PK_ERM_AGENTREQUEST PRIMARY KEY (ID));""".stripMargin
 
     val parser = new SqlParser(inSql)
-    val ParseResult(s, t, i) = parser.traverse
+    val ParseResult(s, t, i, c) = parser.traverse
 
     //compare with outSql
+    t.head.sql shouldBe outSql
   }
 }

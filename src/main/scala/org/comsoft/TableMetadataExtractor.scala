@@ -23,5 +23,5 @@ object TableMetadataExtractor {
       config.getString("database.name"))
   }
 
-  def apply(implicit actorSystem: ActorSystem) = this.apply(actorSystem.settings.config)
+  def apply(implicit actorSystem: ActorSystem): TableMetadataExtractor = this.apply(actorSystem.settings.config)
 }
