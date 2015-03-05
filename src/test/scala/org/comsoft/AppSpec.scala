@@ -14,10 +14,8 @@ import scala.concurrent.duration._
 /**
  * Created by alexgri on 02.02.15.
  */
-class AppSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender with TestBase with Matchers with TestConfigFile {
+class AppSpec extends TestConfigFile with TestBase with Matchers with ImplicitSender {
   behavior of "App"
-
-  def this() = this(ActorSystem("ExportSystem", customConfig))
 
   def createManager = system.actorOf(WorkManager.props, "operator")
 

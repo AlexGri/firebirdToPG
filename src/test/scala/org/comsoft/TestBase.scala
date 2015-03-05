@@ -1,18 +1,20 @@
 package org.comsoft
 
-import akka.testkit.TestKit
-import org.comsoft.config.{ConfiguredDBs, ConfigLoader}
+import akka.actor.ActorSystem
+import akka.testkit.{TestKit, TestKitBase}
+import org.comsoft.config.{ConfigLoader, ConfiguredDBs}
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike}
-import scalikejdbc.config.DBs
 
 /**
  * Created by alexgri on 25.12.14.
  */
-trait TestBase extends FlatSpecLike with BeforeAndAfterAll {
-  self: TestKit with AdditionalConfigFile =>
+trait TestBase extends FlatSpecLike with BeforeAndAfterAll with TestKitBase {
+  self: AdditionalConfigFile =>
 
-  lazy val customConfig = ConfigLoader.configFromFile(userConfigFile)
+  lazy val customConfig = ConfigLoader.customizedConfig(userConfigFile)
   lazy val configuredDBs = new ConfiguredDBs(customConfig)
+
+  implicit lazy val system:ActorSystem = ActorSystem("TestSystem", customConfig)
 
   override protected def beforeAll(): Unit = {
     super.beforeAll()
