@@ -6,7 +6,6 @@ import scala.annotation.tailrec
  * Created by yakupov on 04.03.2015.
  */
 class SqlParser(sqlMetadata: => String) extends App {
-  //val source = scala.io.Source.fromFile("D:\\work\\firebirdToPG\\src\\test\\resources\\aisbd-initial.sql")
 
   lazy val blocks = sqlMetadata.split(";")
   lazy val (used, _) = blocks.span(p => !p.contains("COMMIT WORK"))
@@ -27,7 +26,27 @@ class SqlParser(sqlMetadata: => String) extends App {
     }
   }
 
+  /**
+   * GENERATOR -> SEQUENCE
+   */
+  def processGenerator(sql:String):SequenceDefinition = ???
+
+  /**
+   * BLOB SUB_TYPE TEXT SEGMENT SIZE \d* -> text
+  BLOB SUB_TYPE 0 SEGMENT SIZE \d* -> OID
+    NUMERIC(18, 0) -> BIGINT
+   * */
+  def processTable(sql:String):TableDefinition = ???
+
+  //  удалить кавычки "
+  def commonProcessing(sql:String):String = ???
+
+
   def traverse:ParseResult = traverse(used.toList, Nil, Nil, Nil)
 }
 
 case class ParseResult(sequences:List[String], tables:List[String], indexesAndConstraints:List[String])
+//case class ParseResult(sequences:List[SequenceDefinition], tables:List[TableDefinition], indexesAndConstraints:List[String])
+
+case class SequenceDefinition(name:String, sql:String)
+case class TableDefinition(name:String, sql:String)
