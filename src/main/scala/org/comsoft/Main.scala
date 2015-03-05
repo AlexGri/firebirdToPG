@@ -3,6 +3,7 @@ package org.comsoft
 import akka.actor.SupervisorStrategy.Stop
 import akka.actor._
 import org.comsoft.Protocol._
+import org.comsoft.config.{ConfiguredDBs, ConfigLoader}
 import scalikejdbc.config.DBs
 
 class MainActor extends Actor with ActorLogging {
@@ -33,33 +34,21 @@ class MainActor extends Actor with ActorLogging {
 
   def shutdown = {
     log.info("shutting down")
-    DBs.closeAll()
+    Main.closeAll()
     context.system.shutdown()
   }
 }
 
-object Main extends App {
-  /*val dataSource: DataSource = {
-    val ds = new HikariDataSource()
-    ds.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource")
-    ds.setUsername("postgres")
-    ds.setPassword("postgres")
-    ds.addDataSourceProperty("databaseName", "aisbd_new")
-    ds.addDataSourceProperty("serverName", "localhost")
-
-    ds
-  }
-  ConnectionPool.add('pg, new DataSourceConnectionPool(dataSource))*/
-
-  DBs.setupAll()
-  val system = ActorSystem("example")
-
+object Main extends App {  
+  val config = ConfigLoader.customizedConfig(args)
+  val DBS = new ConfiguredDBs(config)
+  val system = ActorSystem("example", config)
   sys.addShutdownHook {
-    DBs.closeAll()
+    DBS.closeAll()
     system.shutdown()
   }
-
   val main = system.actorOf(Props[MainActor], "main")
-
   main ! Collect
+
+  def closeAll() = DBS.closeAll()
 }
