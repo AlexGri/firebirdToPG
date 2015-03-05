@@ -33,4 +33,7 @@ object Protocol {
   case object BlobProcessed
 
   case object ExtractMetadata
+  case object IndexesCreated
+
+  case class PostMigrateDDL(indexes:List[IndexDefinition], constraints: List[ConstraintsDefinition])
 }

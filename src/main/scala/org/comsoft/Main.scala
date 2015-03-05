@@ -13,6 +13,7 @@ class MainActor extends Actor with ActorLogging {
   val allTables = context.actorOf(TableRetriever.props, "tr")
   var pgtime = 0l
   var fbtime = 0l
+  var ddl: PostMigrateDDL = _
   context.watch(manager)
   override def supervisorStrategy: SupervisorStrategy = {
     AllForOneStrategy(){
@@ -22,16 +23,23 @@ class MainActor extends Actor with ActorLogging {
 
   override def receive: Receive = {
     case ExtractMetadata => metaActor ! ExtractMetadata
+    case p : PostMigrateDDL =>
+      ddl = p
+      self ! Collect
     case Collect => allTables ! Collect
     case WorkComplete =>
-      log.info("all work completed")
+      log.info("data migration completed")
       log.info(s"pg time $pgtime")
       log.info(s"fb time $fbtime")
+      pgtime = 0
+      metaActor ! ddl
+    case IndexesCreated =>
+      log.info(s"post migration ddl completed in $pgtime")
       shutdown
     case msg: DoExport => manager ! msg
     case Terminated(manager) => shutdown
-    case PGTime(time) => pgtime = time
-    case FBTime(time) => fbtime = time
+    case PGTime(time) => pgtime += time
+    case FBTime(time) => fbtime += time
   }
 
   def shutdown = {
@@ -44,13 +52,14 @@ class MainActor extends Actor with ActorLogging {
 object Main extends App {  
   val config = ConfigLoader.customizedConfig(args)
   val DBS = new ConfiguredDBs(config)
+  DBS.setupAll()
   val system = ActorSystem("example", config)
   sys.addShutdownHook {
     DBS.closeAll()
     system.shutdown()
   }
   val main = system.actorOf(Props[MainActor], "main")
-  main ! Collect
+  main ! ExtractMetadata
 
   def closeAll() = DBS.closeAll()
 }
