@@ -15,10 +15,10 @@ object sql_parser extends App {
       case Nil => (l1.map(_ + ";"), l2.map(_ + ";"), l3.map(_ + ";"))
       case y :: ys =>
         y match {
-          case x if x.contains("CREATE GENERATOR") => traverse(ys, x :: l1, l2, l3)
-          case x if x.contains("CREATE TABLE") => traverse(ys, l1, x :: l2, l3)
-          case x if x.contains("CREATE INDEX") => traverse(ys, l1, l2, x :: l3)
-          case x if x.contains("ALTER TABLE") => traverse(ys, l1, l2, x :: l3)
+          case x if x.matches("(?i)(?s).*CREATE *GENERATOR.*") => traverse(ys, x :: l1, l2, l3)
+          case x if x.matches("(?i)(?s).*CREATE *TABLE.*") => traverse(ys, l1, x :: l2, l3)
+          case x if x.matches("(?i)(?s).*CREATE *INDEX.*") => traverse(ys, l1, l2, x :: l3)
+          case x if x.matches("(?i)(?s).*ALTER *TABLE.*") => traverse(ys, l1, l2, x :: l3)
           case _ =>  traverse(ys, l1, l2, l3)
         }
 
