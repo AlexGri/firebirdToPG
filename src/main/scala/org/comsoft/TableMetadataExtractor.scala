@@ -16,13 +16,13 @@ class TableMetadataExtractor(pathToIsql:String, fbUser:String, fbPassword:String
 }
 
 object TableMetadataExtractor {
-  def apply(config:Config) = {
+  def apply(config:Config):TableMetadataExtractor = {
     new TableMetadataExtractor(config.getString("db.default.isql"),
       config.getString("db.default.user"),
       config.getString("db.default.password"),
       config.getString("database.name"))
   }
 
-  def fromSystem(implicit actorSystem: ActorSystem) = this.apply(actorSystem.settings.config)
-  def apply(implicit context: ActorContext) = this.fromSystem(context.system)
+  def fromSystem(implicit actorSystem: ActorSystem):TableMetadataExtractor = this.apply(actorSystem.settings.config)
+  def apply(implicit context: ActorContext):TableMetadataExtractor = this.fromSystem(context.system)
 }
