@@ -1,6 +1,6 @@
 package org.comsoft
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorContext, ActorSystem}
 import com.typesafe.config.Config
 
 import sys.process._
@@ -23,5 +23,6 @@ object TableMetadataExtractor {
       config.getString("database.name"))
   }
 
-  def apply(implicit actorSystem: ActorSystem) = this.apply(actorSystem.settings.config)
+  def fromSystem(implicit actorSystem: ActorSystem) = this.apply(actorSystem.settings.config)
+  def apply(implicit context: ActorContext) = this.fromSystem(context.system)
 }

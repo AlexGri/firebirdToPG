@@ -8,6 +8,7 @@ import scalikejdbc.config.DBs
 
 class MainActor extends Actor with ActorLogging {
 
+  val metaActor = context.actorOf(MetadataActor.props, "meta")
   val manager = context.actorOf(WorkManager.props, "operator")
   val allTables = context.actorOf(TableRetriever.props, "tr")
   var pgtime = 0l
@@ -20,6 +21,7 @@ class MainActor extends Actor with ActorLogging {
   }
 
   override def receive: Receive = {
+    case ExtractMetadata => metaActor ! ExtractMetadata
     case Collect => allTables ! Collect
     case WorkComplete =>
       log.info("all work completed")

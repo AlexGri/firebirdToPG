@@ -31,4 +31,6 @@ object Protocol {
     def apply(blob:Blob) = new BlobBytes(blob.getBytes(1, blob.length().toInt))
   }
   case object BlobProcessed
+
+  case object ExtractMetadata
 }

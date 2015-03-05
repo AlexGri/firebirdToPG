@@ -1,5 +1,7 @@
 package org.comsoft
 
+import akka.actor.ActorContext
+
 import scala.annotation.tailrec
 
 /**
@@ -43,6 +45,10 @@ class SqlParser(sqlMetadata: => String) extends App {
 
 
   def traverse:ParseResult = traverse(used.toList, Nil, Nil, Nil)
+}
+
+object SqlParser {
+  def apply(implicit context:ActorContext) = new SqlParser(TableMetadataExtractor(context).metadata)
 }
 
 case class ParseResult(sequences:List[String], tables:List[String], indexesAndConstraints:List[String])
