@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
 
   object akka {
-    val version = "2.3.8"
+    val version = "2.3.9"
     // Core Akka
     val actor                 = "com.typesafe.akka"      %% "akka-actor"                    % version
     val cluster               = "com.typesafe.akka"      %% "akka-cluster"                  % version
@@ -18,7 +18,7 @@ object Dependencies {
   }
 
   object scalike {
-    val version = "2.2.3"
+    val version = "2.2.4"
 
     val jdbc = "org.scalikejdbc" %% "scalikejdbc" % version
     val testkit = "org.scalikejdbc" %% "scalikejdbc-test" % version
@@ -33,13 +33,9 @@ object Dependencies {
 
   val firebird = "org.firebirdsql.jdbc" % "jaybird-jdk18" % "2.2.7"
 
-  val pg = "org.postgresql" % "postgresql" % "9.3-1102-jdbc41"
+  val pg = "org.postgresql" % "postgresql" % "9.4-1201-jdbc41"
 
-  val csv = "net.sf.supercsv" % "super-csv" % "2.2.0"
-
-  val pool = "com.zaxxer" % "HikariCP" % "2.3.2"
   val dbcp2 = "org.apache.commons" % "commons-dbcp2" % "2.0.+"
-
 
   val csvScala = "com.github.tototoshi" %% "scala-csv" % "1.1.2"
 

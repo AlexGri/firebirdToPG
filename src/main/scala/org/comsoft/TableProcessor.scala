@@ -1,6 +1,5 @@
 package org.comsoft
 
-import java.io.ByteArrayInputStream
 import java.sql.{Blob, Types}
 
 import akka.actor.{Actor, ActorLogging, Props}
@@ -35,18 +34,11 @@ class TableProcessor extends Actor with ActorLogging with FBTiming with PGTiming
     }
     case BatchPart(table, BlobBatchInfo(query, insertQuery)) => {
       val replyTo = sender()
-      //log.info(s"executing $batchNum query for $table")
+      log.info(s"executing blob insert query for $table")
       pgTiming {
         NamedDB('pg) localTx { implicit session =>
-          implicit val lom = getLom
-
-          val lines = fbTiming {
-            DB readOnly { implicit session =>
-              session.fetchSize(blobBatchSize)
-              SQL(query).map(seqAndSave).list().apply()
-            }
-          }
-
+          implicit val lom = Some(getLom)
+          val lines = fetchFB(query, blobBatchSize)
           val q = SQL(insertQuery).batch(lines: _*).apply()
 
           //lines.foreach(line => insertLine(q, line))
@@ -56,25 +48,17 @@ class TableProcessor extends Actor with ActorLogging with FBTiming with PGTiming
     }
   }
 
-  def fetchFB(query:String, size:Int) = fbTiming {
+  def fetchFB(query:String, size:Int)(implicit lom:Option[LargeObjectManager] = None) = fbTiming {
     DB readOnly { implicit session =>
-      session.fetchSize(batchsize)
-      SQL(query).map(toSeq).list().apply()
+      session.fetchSize(size)
+      SQL(query).map(seqAndSave).list().apply()
     }
   }
 
   def getLom(implicit session:DBSession) =
     session.connection.unwrap(classOf[PGConnection]).getLargeObjectAPI
 
-  def insertLine(q:SQL[Nothing, NoExtractor], fields:Seq[Any])(implicit lom:LargeObjectManager, session:DBSession) = {
-    val params = fields.map {
-      case BlobBytes(bytes) => saveBlob(bytes)
-      case c => c
-    }
-    q.bind(params:_*).update().apply()
-  }
-
-  def toSeq(rs: WrappedResultSet): Seq[Any] = {
+  def seqAndSave(rs: WrappedResultSet)(implicit lom:Option[LargeObjectManager]): Seq[Any] = {
     (1 to rs.metaData.getColumnCount).map{i =>
       val tpe = rs.metaData.getColumnType(i)
       tpe match {
@@ -82,22 +66,7 @@ class TableProcessor extends Actor with ActorLogging with FBTiming with PGTiming
           rs.stringOpt(i).map(_.replace(nullSymbol, "")).orNull
         case Types.BLOB | Types.LONGVARBINARY =>
           val blob = rs.blob(i)
-          if (blob != null) BlobBytes(blob)
-          else null
-        case _ => rs.any(i)
-      }
-    }
-  }
-
-  def seqAndSave(rs: WrappedResultSet)(implicit lom:LargeObjectManager): Seq[Any] = {
-    (1 to rs.metaData.getColumnCount).map{i =>
-      val tpe = rs.metaData.getColumnType(i)
-      tpe match {
-        case Types.VARCHAR =>
-          rs.stringOpt(i).map(_.replace(nullSymbol, "")).orNull
-        case Types.BLOB | Types.LONGVARBINARY =>
-          val blob = rs.blob(i)
-          if (blob != null) saveBlob(blob)
+          if (blob != null) saveBlob(blob)(lom.get)
           else null
         case _ => rs.any(i)
       }
@@ -117,21 +86,6 @@ class TableProcessor extends Actor with ActorLogging with FBTiming with PGTiming
     }
     oid
   }
-
-  def saveBlob(blob:Array[Byte])(implicit lom:LargeObjectManager) = {
-    val oid = lom.createLO()
-    val lo = lom.open(oid, LargeObjectManager.WRITE)
-    val is = new ByteArrayInputStream(blob)
-    val os = lo.getOutputStream
-    try {
-      IOUtils.copy(is, os)
-    } finally {
-      IOUtils.closeQuietly(is)
-      IOUtils.closeQuietly(os)
-    }
-    oid
-  }
-
 
 }
 object TableProcessor {

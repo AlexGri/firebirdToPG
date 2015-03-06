@@ -14,7 +14,7 @@ class MetadataSpec extends TestConfigFile with TestBase with Matchers with Impli
     val extractor = TableMetadataExtractor(system.settings.config)
     println(extractor.cmdString)
     val meta = extractor.metadata
-    println(meta)
+    //println(meta)
     meta.isEmpty shouldBe false
   }
 }
