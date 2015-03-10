@@ -14,8 +14,16 @@ class MetadataActor extends Actor with ActorLogging with FBTiming with PGTiming 
 
   override def receive: Receive = {
     case ExtractMetadata =>
+      log.debug("extracting metadata from database")
       val parser = SqlParser.apply
       val ParseResult(s, t, i, c) = parser.traverse
+      log.debug(
+        s"""metadata extracted and converted
+           |sequences:    ${s.size}
+           |tables:       ${t.size}
+           |indexes:      ${i.size}
+           |constraints:  ${c.size}
+         """.stripMargin)
 
       val newSequences = fbTiming {
         DB readOnly { implicit session =>
@@ -28,6 +36,8 @@ class MetadataActor extends Actor with ActorLogging with FBTiming with PGTiming 
         }
       }
 
+      log.debug("got actual sequences values")
+
       val ddl = newSequences.map(_.sql).mkString("\n") + t.map(_.sql).mkString("\n")
 
       pgTiming {
@@ -35,6 +45,7 @@ class MetadataActor extends Actor with ActorLogging with FBTiming with PGTiming 
           SQL(ddl).execute().apply()
         }
       }
+      log.debug("sequences and tables created")
 
       sender() ! PostMigrateDDL(i, c)
     case PostMigrateDDL(i, c) =>

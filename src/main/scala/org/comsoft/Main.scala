@@ -22,11 +22,14 @@ class MainActor extends Actor with ActorLogging {
   }
 
   override def receive: Receive = {
-    case ExtractMetadata => metaActor ! ExtractMetadata
+    case ExtractMetadata =>
+      log.debug("command to extract metadata received. resending it to metaActor")
+      metaActor ! ExtractMetadata
     case p : PostMigrateDDL =>
       ddl = p
       self ! Collect
-    case Collect => allTables ! Collect
+    case Collect =>
+      allTables ! Collect
     case WorkComplete =>
       log.info("data migration completed")
       log.info(s"pg time $pgtime")
