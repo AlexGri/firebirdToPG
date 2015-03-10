@@ -64,6 +64,30 @@ class SqlParserSpec extends FreeSpec with Matchers {
     t.head.sql shouldBe outSql
   }
 
+  "numeric(18, 2) should not be replaced" in {
+    val inSql = """CREATE TABLE CFG_RESOURCE (ID NUMERIC(18, 2) NOT NULL,
+                  |        PATH VARCHAR(255) NOT NULL,
+                  |        DESCRIPTION VARCHAR(255) NOT NULL,
+                  |        INSTALL_ORDER NUMERIC(18, 0) NOT NULL,
+                  |        RESOURCE_TYPE NUMERIC(18, 0) NOT NULL,
+                  |        ARTIFACT NUMERIC(18, 0) NOT NULL,
+                  |PRIMARY KEY (ID));""".stripMargin
+
+    val outSql = """CREATE TABLE CFG_RESOURCE (ID NUMERIC(18, 2) NOT NULL,
+                   |        PATH VARCHAR(255) NOT NULL,
+                   |        DESCRIPTION VARCHAR(255) NOT NULL,
+                   |        INSTALL_ORDER BIGINT NOT NULL,
+                   |        RESOURCE_TYPE BIGINT NOT NULL,
+                   |        ARTIFACT BIGINT NOT NULL,
+                   |PRIMARY KEY (ID));""".stripMargin
+
+    val parser = new SqlParser(inSql)
+    val ParseResult(s, t, i, c) = parser.traverse
+
+    //compare with outSql
+    t.head.sql shouldBe outSql
+  }
+
   "remove computed by from index" in {
     val inSql = "CREATE INDEX IX_DOCKIND_ANAME_UP ON ERM_DOCKIND COMPUTED BY (upper(ANAME));"
     val outSql = "CREATE INDEX IX_DOCKIND_ANAME_UP ON ERM_DOCKIND (upper(ANAME));"

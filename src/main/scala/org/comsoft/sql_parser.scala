@@ -55,7 +55,7 @@ class SqlParser(sqlMetadata: => String) extends App {
     val name = pattern.map(_ group 1).get
     val p1 = "(?i)(?s)BLOB *SUB_TYPE *TEXT *SEGMENT *SIZE *\\d*"
     val p2 = "(?i)(?s)BLOB *SUB_TYPE *0 *SEGMENT *SIZE *\\d*"
-    val p3 = "(?i)(?s)NUMERIC *\\( *\\d* *, *\\d* *\\)"
+    val p3 = "(?i)(?s)NUMERIC *\\( *18 *, *0 *\\)"
     val data = pattern.map(_ group 2).get.replaceAll(p1, "TEXT").replaceAll(p2, "OID").replaceAll(p3, "BIGINT")
     val post_sql = "CREATE TABLE " + name + data
     TableDefinition(name, post_sql)
