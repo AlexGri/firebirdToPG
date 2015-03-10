@@ -31,7 +31,8 @@ object Dependencies {
     val slf4j_simple = "org.slf4j" % "slf4j-simple" % "1.6.1"
   }
 
-  val firebird = "org.firebirdsql.jdbc" % "jaybird-jdk18" % "2.2.7"
+  val firebird8 = "org.firebirdsql.jdbc" % "jaybird-jdk18" % "2.2.7"
+  val firebird6 = "org.firebirdsql.jdbc" % "jaybird-jdk16" % "2.2.7"
 
   val pg = "org.postgresql" % "postgresql" % "9.4-1201-jdbc41"
 
