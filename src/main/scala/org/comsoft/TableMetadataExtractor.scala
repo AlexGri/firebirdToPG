@@ -8,9 +8,9 @@ import sys.process._
 /**
  * Created by alexgri on 04.03.15.
  */
-class TableMetadataExtractor(pathToIsql:String, fbUser:String, fbPassword:String, dbName:String) {
+class TableMetadataExtractor(pathToIsql:String, fbUser:String, fbPassword:String, dbHost:String, dbName:String) {
 
-  def cmdString = s"$pathToIsql -x -u $fbUser -p $fbPassword -ch WIN1251 $dbName"
+  def cmdString = s"$pathToIsql -x -u $fbUser -p $fbPassword -ch WIN1251 $dbHost:$dbName"
   def metadata:String = cmdString !!
 
 }
@@ -20,6 +20,7 @@ object TableMetadataExtractor {
     new TableMetadataExtractor(config.getString("db.default.isql"),
       config.getString("db.default.user"),
       config.getString("db.default.password"),
+      config.getString("database.host"),
       config.getString("database.name"))
   }
 

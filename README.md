@@ -34,8 +34,9 @@ $ java -jar ./target/scala-2.11/firebirdtopg_2.11-1.0-one-jar.jar ./src/test/res
  - global.numofworkers_squared = 9 // число акторов в квадрате - используем для коннекшн пула
 
  - database.name="archetype_db"
+ - database.host="localhost"
  - db.default.driver="org.firebirdsql.jdbc.FBDriver"
- - db.default.url="jdbc:firebirdsql:localhost/3050:"${database.name}"?lc_ctype=WIN1251"
+ - db.default.url="jdbc:firebirdsql:"${database.host}"/3050:"${database.name}"?lc_ctype=WIN1251"
  - db.default.user="yourusername"
  - db.default.password="yourpassword"
  - db.default.isql="/opt/firebird/bin/isql" //путь до утилиты isql для получения sql метаданных бд
