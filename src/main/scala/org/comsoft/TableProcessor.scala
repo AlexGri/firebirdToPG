@@ -64,10 +64,10 @@ class TableProcessor extends Actor with ActorLogging with FBTiming with PGTiming
       tpe match {
         case Types.VARCHAR =>
           rs.stringOpt(i).map(_.replace(nullSymbol, "")).orNull
-        case Types.BLOB | Types.LONGVARBINARY =>
+        /*case Types.BLOB | Types.LONGVARBINARY =>
           val blob = rs.blob(i)
           if (blob != null) saveBlob(blob)(lom.get)
-          else null
+          else null*/
         case _ => rs.any(i)
       }
     }

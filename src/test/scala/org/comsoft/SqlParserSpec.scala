@@ -138,7 +138,7 @@ class SqlParserSpec extends FreeSpec with Matchers {
                   |CONSTRAINT PK_ERMS_SAVED_FILTER PRIMARY KEY (ID));""".stripMargin
     val outSql = """CREATE TABLE ERMS_SAVED_FILTER (
                    |        NAME VARCHAR(250) NOT NULL,
-                   |        XMLDATA OID NOT NULL,
+                   |        XMLDATA BYTEA NOT NULL,
                    |CONSTRAINT PK_ERMS_SAVED_FILTER PRIMARY KEY (ID));""".stripMargin
 
     val parser = new SqlParser(inSql)
