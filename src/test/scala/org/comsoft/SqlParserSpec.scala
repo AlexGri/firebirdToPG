@@ -110,7 +110,7 @@ class SqlParserSpec extends FreeSpec with Matchers {
     i.head.sql shouldBe outSql
   }
 
-  "convert text type" in {
+  "convert text type and smallint" in {
     val inSql = """CREATE TABLE CFG_ARTIFACT (ID NUMERIC(18, 0) NOT NULL,
                   |        NAME VARCHAR(255) NOT NULL,
                   |        CODE VARCHAR(30) NOT NULL,
@@ -120,7 +120,7 @@ class SqlParserSpec extends FreeSpec with Matchers {
     val outSql = """CREATE TABLE CFG_ARTIFACT (ID BIGINT NOT NULL,
                    |        NAME VARCHAR(255) NOT NULL,
                    |        CODE VARCHAR(30) NOT NULL,
-                   |        INSTALLED SMALLINT,
+                   |        INSTALLED BOOLEAN,
                    |        INSTALL_LOG TEXT,
                    |PRIMARY KEY (ID));""".stripMargin
 

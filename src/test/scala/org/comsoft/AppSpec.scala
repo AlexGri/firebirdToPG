@@ -62,7 +62,7 @@ class AppSpec extends TestConfigFile with TestBase with Matchers with ImplicitSe
     println(converted.mkString("\n"))
   }
 
-  it should "be able to get real pg connection" in {
+  it should "be able to get real pg connection" ignore {
     NamedDB('pg) localTx { session =>
       val pgconnection = session.connection.unwrap(classOf[PGConnection])
       val lom = pgconnection.getLargeObjectAPI

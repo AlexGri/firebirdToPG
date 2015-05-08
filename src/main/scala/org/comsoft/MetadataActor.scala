@@ -9,6 +9,10 @@ import scalikejdbc._
  */
 class MetadataActor extends Actor with ActorLogging with FBTiming with PGTiming {
 
+  val hardcoded = """alter table JBPM5_HT_TASK ALTER COLUMN ARCHIVED TYPE smallint using ARCHIVED::int;
+    |alter table JBPM5_HT_DEADLINE ALTER COLUMN ESCALATED TYPE smallint using ESCALATED::int;    |
+  """.stripMargin
+
   def sequenceValueSql(name:String):String = "SELECT GEN_ID(" + name + ", 0 ) FROM RDB$DATABASE;"
   def sequenceValue(s:SequenceDefinition) = SQL(sequenceValueSql(s.name)).map(_.int(1)).single()
 
@@ -49,7 +53,8 @@ class MetadataActor extends Actor with ActorLogging with FBTiming with PGTiming 
 
       sender() ! PostMigrateDDL(i, c)
     case PostMigrateDDL(i, c) =>
-      val ddl = i.map(_.sql).mkString("\n") + c.map(_.sql).mkString("\n")
+      log.warning(s"we are using hardcoded queries: $hardcoded")
+      val ddl = i.map(_.sql).mkString("\n") + c.map(_.sql).mkString("\n") + hardcoded
       pgTiming {
         NamedDB('pg) localTx { implicit session =>
           SQL(ddl).execute().apply()

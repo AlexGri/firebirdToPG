@@ -49,6 +49,7 @@ class SqlParser(sqlMetadata: => String) extends App {
    * BLOB SUB_TYPE TEXT SEGMENT SIZE \d* -> text
   BLOB SUB_TYPE 0 SEGMENT SIZE \d* -> OID
     NUMERIC(18, 0) -> BIGINT
+   SMALLINT -> BOOLEAN
    * */
   def processTable(sql:String):TableDefinition = {
     val pattern = "(?i)(?s).*CREATE *TABLE *(\\w*)(.*)".r  .findFirstMatchIn(sql)
@@ -56,7 +57,9 @@ class SqlParser(sqlMetadata: => String) extends App {
     val p1 = "(?i)(?s)BLOB *SUB_TYPE *TEXT *SEGMENT *SIZE *\\d*"
     val p2 = "(?i)(?s)BLOB *SUB_TYPE *0 *SEGMENT *SIZE *\\d*"
     val p3 = "(?i)(?s)NUMERIC *\\( *18 *, *0 *\\)"
+    val p4 = "(?i)(?s)SMALLINT"
     val data = pattern.map(_ group 2).get.replaceAll(p1, "TEXT").replaceAll(p2, "BYTEA").replaceAll(p3, "BIGINT")
+    .replaceAll(p4, "BOOLEAN")
     val post_sql = "CREATE TABLE " + name + data
     TableDefinition(name, post_sql)
   }
